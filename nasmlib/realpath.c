@@ -26,6 +26,13 @@
 char *nasm_realpath(const char *rel_path)
 {
     char *rp = canonicalize_file_name(rel_path);
+# ifdef USE_LOOKASIDE_ALLOC
+    if (rp) {
+        char *ret = nasm_strdup(rp); /* must return nasmlib/alloc.c alloc. */
+        free(rp);
+        return ret;
+    }
+# endif
     return rp ? rp : nasm_strdup(rel_path);
 }
 
@@ -73,6 +80,13 @@ char *nasm_realpath(const char *rel_path)
             rp = nasm_realloc(rp, strlen(rp) + 1);
         }
     }
+# ifdef USE_LOOKASIDE_ALLOC
+    else if (rp) {
+        char *ret = nasm_strdup(rp); /* must return nasmlib/alloc.c alloc. */
+        free(rp);
+        return ret;
+    }
+# endif
 
     return rp ? rp : nasm_strdup(rel_path);
 }
@@ -86,6 +100,13 @@ char *nasm_realpath(const char *rel_path)
 char *nasm_realpath(const char *rel_path)
 {
     char *rp = _fullpath(NULL, rel_path, 0);
+# ifdef USE_LOOKASIDE_ALLOC
+    if (rp) {
+        char *ret = nasm_strdup(rp); /* must return nasmlib/alloc.c alloc. */
+        free(rp);
+        return ret;
+    }
+# endif
     return rp ? rp : nasm_strdup(rel_path);
 }
 

@@ -25,9 +25,6 @@
  * safeguards against wasting loads of heap or what to do if we run out
  * of memory.
  */
-#if defined(_MSC_VER)
-# define USE_LOOKASIDE_ALLOC
-#endif
 #ifdef USE_LOOKASIDE_ALLOC
 
 /*# define LOOKASIDE_STATS*/

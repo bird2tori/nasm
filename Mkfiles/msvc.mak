@@ -33,7 +33,7 @@ CC		= cl
 AR		= lib
 ARFLAGS		= /nologo
 
-CFLAGS		= $(OPTFLAGS) /Zi /nologo /std:c11 /bigobj /D_CRT_DISABLE_PERFCRIT_LOCKS
+CFLAGS		= $(OPTFLAGS) /Zi /nologo /std:c11 /bigobj /D_CRT_DISABLE_PERFCRIT_LOCKS /DUSE_LOOKASIDE_ALLOC
 BUILD_CFLAGS	= $(CFLAGS) /W2
 INTERNAL_CFLAGS = /I$(srcdir) /I. \
 		  /I$(srcdir)/include /I./include \
