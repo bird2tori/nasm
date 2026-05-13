@@ -51,8 +51,18 @@
 typedef wchar_t *os_filename;
 typedef wchar_t  os_fopenflag;
 
+static bool is_unc_name(wchar_t const *path)
+{
+    /* starts with exactly two slashes and a server name. */
+    return (path[0] == L'\\' || path[0] == L'/')
+        && (path[1] == L'\\' || path[1] == L'/')
+        && (path[2] != L'\\' && path[2] != L'/' && path[2] != '\0');
+}
+
 static os_filename os_mangle_filename(const char *filename)
 {
+    static wchar_t const longpfx[] = L"\\\\?\\";
+    static const size_t cwclongpfx = sizeof(longpfx) / sizeof(wchar_t) - 1;
     size_t wclen;
     wchar_t *buf;
 
@@ -69,6 +79,31 @@ static os_filename os_mangle_filename(const char *filename)
     if (!wclen) {
         nasm_free(buf);
         return NULL;
+    }
+
+    /* If the length exceeds 260 and there is no \\?\ prefix, convert it to an
+       absolute (full) path and add the passthru-prefix. */
+    if (wclen >= 260 && wcsncmp(buf, longpfx, cwclongpfx) != 0) {
+        wclen = GetFullPathNameW(buf, 0, NULL, NULL);
+        if (wclen > 0) {
+            static wchar_t const uncpfx[] = L"\\\\?\\UNC";
+            static wchar_t const cwcuncpfx = sizeof(uncpfx) / sizeof(wchar_t) - 1;
+            wchar_t *buf2 = (wchar_t *)nasm_malloc((wclen + 1 + cwcuncpfx) << 1);
+            memcpy(buf2, longpfx, sizeof(longpfx));
+            wclen = GetFullPathNameW(buf, wclen + 1, &buf2[cwclongpfx], NULL);
+            if (wclen) {
+                nasm_free(buf);
+                buf = buf2;
+                if (is_unc_name(&buf2[cwclongpfx])) {
+                    /* \\?\\\server\share -> \\?\UNC\server\share */
+                    memmove(&buf2[cwcuncpfx], &buf2[cwclongpfx + 1],
+                            wclen * sizeof(*buf2));
+                    memcpy(buf2, uncpfx, cwcuncpfx * sizeof(*buf2));
+                }
+            } else {
+                nasm_free(buf2);
+            }
+        }
     }
 
     return buf;
