@@ -303,21 +303,23 @@ FILE *nasm_open_write(const char *filename, enum file_flags flags)
         nasm_fatalf(ERR_NOFILE, "unable to open output file: `%s': %s",
                     filename, strerror(errno));
 
-    switch (flags & NF_BUF_MASK) {
-    case NF_IONBF:
-        setvbuf(f, NULL, _IONBF, 0);
-        break;
-    case NF_IOLBF:
-        setvbuf(f, NULL, _IOLBF, 0);
-        break;
-    case NF_IOFBF:
-        setvbuf(f, NULL, _IOFBF, 0);
-        break;
-    default:
+    if (f) {
+        switch (flags & NF_BUF_MASK) {
+        case NF_IONBF:
+            setvbuf(f, NULL, _IONBF, 0);
+            break;
+        case NF_IOLBF:
+            setvbuf(f, NULL, _IOLBF, 0);
+            break;
+        case NF_IOFBF:
+            setvbuf(f, NULL, _IOFBF, 0);
+            break;
+        default:
 #ifdef _MSC_VER /* More agressive buffering. */
-        setvbuf(f, NULL, _IOFBF, 0x10000);
+            setvbuf(f, NULL, _IOFBF, 0x10000);
 #endif
-        break;
+            break;
+        }
     }
 
     return f;
